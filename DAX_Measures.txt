@@ -1,0 +1,109 @@
+──────────────────────────────────────────
+# All DAX measures used in the dashboard
+──────────────────────────────────────────
+
+
+# Basic KPIs
+Total Transactions =
+COUNT ( 'synthetic_fraud_dataset'[transaction_id] )
+
+
+Total Fraud Transactions =
+CALCULATE (
+    COUNT ( 'synthetic_fraud_dataset'[transaction_id] ),
+    'synthetic_fraud_dataset'[is_fraud] = 1
+)
+
+
+Total Legit Transactions =
+CALCULATE (
+    COUNT ( 'synthetic_fraud_dataset'[transaction_id] ),
+    'synthetic_fraud_dataset'[is_fraud] = 0
+)
+
+
+-- 🔹 Amount-Based KPIs
+Total Transaction Amount =
+SUM ( 'synthetic_fraud_dataset'[amount] )
+
+
+Total Fraud Amount =
+CALCULATE (
+    SUM ( 'synthetic_fraud_dataset'[amount] ),
+    'synthetic_fraud_dataset'[is_fraud] = 1
+)
+
+
+Total Legit Amount =
+CALCULATE (
+    SUM ( 'synthetic_fraud_dataset'[amount] ),
+    'synthetic_fraud_dataset'[is_fraud] = 0
+)
+
+
+-- 🔹 Identification Metrics
+Fraud %
+=
+DIVIDE (
+    [Total Fraud Transactions],
+    [Total Transactions],
+    0
+)
+
+
+Fraud Amount %
+=
+DIVIDE (
+    [Total Fraud Amount],
+    [Total Transaction Amount],
+    0
+)
+
+
+-- 🔹 Risk-Related Calculations
+Avg Device Risk Score =
+AVERAGE ( 'synthetic_fraud_dataset'[device_risk_score] )
+
+
+Avg IP Risk Score =
+AVERAGE ( 'synthetic_fraud_dataset'[ip_risk_score] )
+
+
+Fraud Score Index =
+DIVIDE (
+    [Avg Device Risk Score] + [Avg IP Risk Score],
+    2,
+    0
+)
+
+
+-- 🔹 Temporal Insights (Hour-based detection)
+Fraud Transactions (Night)
+=
+CALCULATE (
+    [Total Fraud Transactions],
+    'synthetic_fraud_dataset'[hour] >= 0
+        && 'synthetic_fraud_dataset'[hour] <= 6
+)
+
+
+Fraud Transactions (Day)
+=
+CALCULATE (
+    [Total Fraud Transactions],
+    'synthetic_fraud_dataset'[hour] >= 7
+        && 'synthetic_fraud_dataset'[hour] <= 19
+)
+
+
+-- 🔹 Flags for visuals
+Fraud Flag =
+IF (
+    'synthetic_fraud_dataset'[is_fraud] = 1,
+    "Fraud",
+    "Legit"
+)
+
+──────────────────────────────────────────
+📌 End of file
+──────────────────────────────────────────
